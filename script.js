@@ -1,55 +1,165 @@
-// The Momo House — small, purposeful interactions.
+/* The Momo House — theme, mobile nav, filters, bookings. */
+
 const root = document.documentElement;
-const themeButton = document.querySelector('.theme-toggle');
-const menuToggle = document.querySelector('.menu-toggle');
-const nav = document.querySelector('.main-nav');
+const themeButton = document.querySelector(".theme-toggle");
+const menuToggle = document.querySelector(".menu-toggle");
+const nav = document.querySelector(".main-nav");
+const modal = document.querySelector("#reserve-modal");
+const form = document.querySelector("#reserve-form");
+const bookingList = document.querySelector("#booking-list");
+const emptyBookings = document.querySelector("#empty-bookings");
+const STORAGE_KEY = "momo-bookings";
 
-// Restore a visitor's preferred theme, while respecting their first visit.
-const savedTheme = localStorage.getItem('momo-theme');
-if (savedTheme) root.dataset.theme = savedTheme;
-const updateThemeIcon = () => {
-  const dark = root.dataset.theme === 'dark';
-  themeButton.innerHTML = `<span>${dark ? '☾' : '☼'}</span>`;
-  themeButton.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
-};
-updateThemeIcon();
-themeButton.addEventListener('click', () => {
-  root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
-  localStorage.setItem('momo-theme', root.dataset.theme);
-  updateThemeIcon();
+/* ----- Theme ----- */
+const savedTheme = localStorage.getItem("momo-theme");
+if (savedTheme === "dark" || savedTheme === "light") {
+  root.dataset.theme = savedTheme;
+}
+
+function syncThemeButton() {
+  const dark = root.dataset.theme === "dark";
+  themeButton.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+}
+
+syncThemeButton();
+
+themeButton.addEventListener("click", () => {
+  root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+  localStorage.setItem("momo-theme", root.dataset.theme);
+  syncThemeButton();
 });
 
-// Mobile navigation.
-menuToggle.addEventListener('click', () => {
-  const open = nav.classList.toggle('open');
-  menuToggle.setAttribute('aria-expanded', open);
-  menuToggle.textContent = open ? '×' : '☰';
+/* ----- Mobile navigation ----- */
+menuToggle.addEventListener("click", () => {
+  const open = nav.classList.toggle("is-open");
+  menuToggle.setAttribute("aria-expanded", String(open));
+  menuToggle.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
 });
-nav.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
-  nav.classList.remove('open');
-  menuToggle.setAttribute('aria-expanded', 'false');
-  menuToggle.textContent = '☰';
-}));
 
-// Menu category filtering.
-document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => {
-  document.querySelectorAll('.filter').forEach(item => item.classList.remove('active'));
-  button.classList.add('active');
-  const filter = button.dataset.filter;
-  document.querySelectorAll('.menu-card').forEach(card => {
-    card.hidden = filter !== 'all' && card.dataset.category !== filter;
+nav.querySelectorAll("a").forEach((link) => {
+  link.addEventListener("click", () => {
+    nav.classList.remove("is-open");
+    menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.setAttribute("aria-label", "Open navigation");
   });
-}));
+});
 
-// Keep the demo reservation flow friendly without sending a request.
-document.querySelector('.reservation-form').addEventListener('submit', event => {
+/* ----- Active section underline ----- */
+const sections = [...document.querySelectorAll("main section[id]")];
+const navLinks = [...nav.querySelectorAll("a")];
+
+function setActiveNav() {
+  const y = window.scrollY + 120;
+  let current = "home";
+  sections.forEach((section) => {
+    if (section.offsetTop <= y) current = section.id;
+  });
+  navLinks.forEach((link) => {
+    link.classList.toggle("is-active", link.getAttribute("href") === `#${current}`);
+  });
+}
+
+window.addEventListener("scroll", setActiveNav, { passive: true });
+
+/* ----- Menu filters ----- */
+document.querySelectorAll(".chip").forEach((button) => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".chip").forEach((chip) => chip.classList.remove("is-active"));
+    button.classList.add("is-active");
+    const filter = button.dataset.filter;
+    document.querySelectorAll(".menu-card").forEach((card) => {
+      card.hidden = filter !== "all" && card.dataset.category !== filter;
+    });
+  });
+});
+
+/* ----- Bookings ----- */
+function loadBookings() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function renderBookings() {
+  const bookings = loadBookings();
+  bookingList.innerHTML = "";
+  emptyBookings.classList.toggle("is-hidden", bookings.length > 0);
+
+  bookings.forEach((booking, index) => {
+    const item = document.createElement("li");
+    item.className = "booking-item";
+    item.innerHTML = `
+      <div>
+        <strong>${booking.name}</strong>
+        <small>${booking.date} · ${booking.time} · ${booking.guests} guests</small>
+      </div>
+      <button type="button" class="btn btn-ghost" data-remove="${index}" aria-label="Cancel booking">Cancel</button>
+    `;
+    bookingList.appendChild(item);
+  });
+}
+
+bookingList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-remove]");
+  if (!button) return;
+  const bookings = loadBookings();
+  bookings.splice(Number(button.dataset.remove), 1);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+  renderBookings();
+});
+
+function openModal() {
+  modal.hidden = false;
+  document.body.style.overflow = "hidden";
+  form.elements.name.focus();
+}
+
+function closeModal() {
+  modal.hidden = true;
+  document.body.style.overflow = "";
+}
+
+document.querySelectorAll("[data-open-modal]").forEach((button) => {
+  button.addEventListener("click", openModal);
+});
+
+document.querySelectorAll("[data-close-modal]").forEach((button) => {
+  button.addEventListener("click", closeModal);
+});
+
+modal.addEventListener("click", (event) => {
+  if (event.target === modal) closeModal();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !modal.hidden) closeModal();
+});
+
+form.addEventListener("submit", (event) => {
   event.preventDefault();
-  const name = event.currentTarget.elements.name.value.trim();
-  const message = event.currentTarget.querySelector('.form-message');
-  message.textContent = name ? `Thanks, ${name}! We will confirm your table shortly.` : 'Please add your name to continue.';
-  if (name) event.currentTarget.reset();
-<<<<<<< HEAD
+  const data = new FormData(form);
+  const booking = {
+    name: String(data.get("name")).trim(),
+    email: String(data.get("email")).trim(),
+    date: String(data.get("date")),
+    time: form.elements.time.selectedOptions[0].text,
+    guests: String(data.get("guests")),
+  };
+  const bookings = loadBookings();
+  bookings.unshift(booking);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+  renderBookings();
+  form.querySelector(".form-status").textContent = `Thanks, ${booking.name}. Your table is held.`;
+  form.reset();
+  setTimeout(closeModal, 900);
 });
-=======
-});
->>>>>>> c49c480e2c654b2233647ee9406893171c525416
+
+const dateInput = form.elements.date;
+const today = new Date().toISOString().split("T")[0];
+dateInput.min = today;
+dateInput.value = today;
+
+renderBookings();
+setActiveNav();
