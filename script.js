@@ -1,4 +1,4 @@
-/* The Momo House — theme, mobile nav, filters, bookings. */
+/* La'Delicious — theme, mobile nav, filters, bookings. */
 
 const root = document.documentElement;
 const themeButton = document.querySelector(".theme-toggle");
@@ -9,6 +9,70 @@ const form = document.querySelector("#reserve-form");
 const bookingList = document.querySelector("#booking-list");
 const emptyBookings = document.querySelector("#empty-bookings");
 const STORAGE_KEY = "momo-bookings";
+
+/* ----- Restaurant identity ----- */
+document.title = "La'Delicious | Himalayan Kitchen";
+const description = document.querySelector('meta[name="description"]');
+if (description) {
+  description.content = "La'Delicious — Himalayan kitchen in Melbourne. View the menu, gallery, hours, location, and book a table.";
+}
+document.querySelectorAll(".brand-name").forEach((brand) => {
+  brand.textContent = "La'Delicious";
+});
+document.querySelector('.brand[aria-label]')?.setAttribute("aria-label", "La'Delicious home");
+document.querySelector('.about-media img')?.setAttribute("alt", "Warm dining room at La'Delicious");
+const copyright = document.querySelector(".copyright span");
+if (copyright) copyright.textContent = "© 2026 La'Delicious";
+const emailLink = document.querySelector('a[href^="mailto:"]');
+if (emailLink) emailLink.href = "mailto:hello@ladelicious.com";
+
+/* ----- Refreshed navigation layout ----- */
+const navStyles = document.createElement("style");
+navStyles.textContent = `
+  @media (min-width: 761px) {
+    .nav-wrap {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 28px;
+    }
+
+    .main-nav {
+      justify-self: center;
+      align-items: center;
+      gap: 4px;
+      margin-left: 0;
+      padding: 5px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--card) 82%, transparent);
+      box-shadow: 0 6px 18px rgba(20, 37, 59, 0.08);
+    }
+
+    .main-nav a {
+      padding: 9px 14px;
+      border-radius: 999px;
+      transition: color 0.3s ease, background 0.3s ease;
+    }
+
+    .main-nav a:hover,
+    .main-nav a.is-active {
+      color: var(--text);
+      background: var(--bg-soft);
+    }
+
+    .main-nav a.is-active::after {
+      display: none;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .main-nav {
+      border-radius: 0;
+      box-shadow: none;
+    }
+  }
+`;
+document.head.appendChild(navStyles);
 
 /* ----- Theme ----- */
 const savedTheme = localStorage.getItem("momo-theme");
