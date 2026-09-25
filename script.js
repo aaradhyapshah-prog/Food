@@ -48,4 +48,8 @@ document.querySelector('.reservation-form').addEventListener('submit', event => 
   const message = event.currentTarget.querySelector('.form-message');
   message.textContent = name ? `Thanks, ${name}! We will confirm your table shortly.` : 'Please add your name to continue.';
   if (name) event.currentTarget.reset();
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> c49c480e2c654b2233647ee9406893171c525416
