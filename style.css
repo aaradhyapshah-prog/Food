@@ -1,5 +1,5 @@
 /* =========================================================
-   The Momo House — theme tokens
+   La'Delicious — theme tokens
    Light defaults live on :root. Dark mode overrides via
    [data-theme="dark"] on <html>.
    ========================================================= */
@@ -101,9 +101,10 @@ button {
 
 .nav-wrap {
   height: var(--header-h);
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 20px;
+  gap: 28px;
 }
 
 .brand {
@@ -138,33 +139,35 @@ button {
 
 .main-nav {
   display: flex;
-  gap: 22px;
-  margin-left: auto;
+  justify-self: center;
+  align-items: center;
+  gap: 4px;
+  margin-left: 0;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 82%, transparent);
+  box-shadow: 0 6px 18px rgba(20, 37, 59, 0.08);
 }
 
 .main-nav a {
   position: relative;
-  padding: 26px 0 22px;
+  padding: 9px 14px;
   color: var(--muted);
   font-size: 0.86rem;
   font-weight: 600;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+  border-radius: 999px;
 }
 
 .main-nav a:hover,
 .main-nav a.is-active {
   color: var(--text);
+  background: var(--bg-soft);
 }
 
 .main-nav a.is-active::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 16px;
-  height: 2px;
-  border-radius: 99px;
-  background: var(--gradient-primary);
+  display: none;
 }
 
 .nav-actions {
@@ -926,6 +929,10 @@ h2 {
 }
 
 @media (max-width: 760px) {
+  .nav-wrap {
+    grid-template-columns: auto 1fr auto;
+  }
+
   .hero-grid,
   .bookings-grid {
     grid-template-columns: 1fr;
@@ -948,6 +955,8 @@ h2 {
     padding: 8px 20px 16px;
     background: var(--bg);
     border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .main-nav.is-open {
@@ -956,6 +965,8 @@ h2 {
 
   .main-nav a {
     padding: 12px 0;
+    width: 100%;
+    border-radius: 10px;
   }
 
   .main-nav a.is-active::after {
